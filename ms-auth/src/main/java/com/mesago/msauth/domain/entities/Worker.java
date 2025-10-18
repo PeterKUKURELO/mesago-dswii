@@ -7,11 +7,16 @@ import java.time.LocalDate;
 
 @Entity
 @Data
-@Table(name = "T_MGO_USUARIO")
+@Table(name = "T_MGO_TRABAJADOR")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Worker {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
     private Long id;
 
     @Column(name = "DNI", length = 20, nullable = false)

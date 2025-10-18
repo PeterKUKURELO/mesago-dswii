@@ -16,10 +16,11 @@ import lombok.Setter;
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_ROL")
     private Long id;
 
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "cargo", length = 50, nullable = false, unique = true)
+    @Column(name = "CARGO", length = 50, nullable = false, unique = true)
     private RoleName name;
+
 }
