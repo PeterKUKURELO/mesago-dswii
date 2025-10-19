@@ -1,12 +1,21 @@
 package com.mesago.msauth.application.services;
 
-import com.mesago.msauth.api.dto.AuthResponse;
-import com.mesago.msauth.api.dto.LoginRequest;
-import com.mesago.msauth.api.dto.RegisterRequest;
+import com.mesago.msauth.api.dto.*;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.List;
 
 public interface AuthService {
     void register(RegisterRequest registerRequest);
 
     AuthResponse login(LoginRequest loginRequest);
+
+    UserProfileResponse getMyProfile(UserDetails currentUser);
+
+    List<WorkerDetailResponse> getAllWorkers();
+
+    WorkerDetailResponse updateWorker(Long workerId, UpdateWorkerRequest request);
+
+    void deleteWorker(Long workerId);
 
 }
