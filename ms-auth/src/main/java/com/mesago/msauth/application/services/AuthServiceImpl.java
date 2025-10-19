@@ -1,8 +1,6 @@
 package com.mesago.msauth.application.services;
 
-import com.mesago.msauth.api.dto.AuthResponse;
-import com.mesago.msauth.api.dto.LoginRequest;
-import com.mesago.msauth.api.dto.RegisterRequest;
+import com.mesago.msauth.api.dto.*;
 import com.mesago.msauth.domain.entities.Role;
 import com.mesago.msauth.domain.entities.User;
 import com.mesago.msauth.domain.entities.Worker;
@@ -11,15 +9,16 @@ import com.mesago.msauth.domain.repositories.UserRepository;
 import com.mesago.msauth.domain.repositories.WorkerRepository;
 import com.mesago.msauth.infrastructure.security.jwt.JwtUtils;
 import jakarta.transaction.Transactional;
-import jdk.jshell.spi.ExecutionControl;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.mesago.msauth.api.exception.DuplicateResourceException;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,13 +52,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void register(RegisterRequest registerRequest) {
-        if(userRepository.existsByUsername(registerRequest.getUsername())) {
-            throw new RuntimeException("El username ya existe");
+        if (userRepository.existsByUsername(registerRequest.getUsername())) {
+            throw new DuplicateResourceException("El nombre de usuario '" + registerRequest.getUsername() + "' ya está en uso.");
         }
         if (workerRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
-            throw new RuntimeException("Error: El email ya está registrado.");
+            throw new DuplicateResourceException("El email '" + registerRequest.getEmail() + "' ya está registrado.");
         }
-
         Role userRole = roleRepository.findByName(registerRequest.getRoleName())
                 .orElseThrow(() -> new RuntimeException("Error: Rol no encontrado."));
 
@@ -99,5 +97,74 @@ public class AuthServiceImpl implements AuthService {
         return new AuthResponse(accessToken, user.getUsername(), role);
     }
 
+    @Override
+    public UserProfileResponse getMyProfile(UserDetails currentUser) {
+
+        User user = (User) currentUser;
+
+        String role = user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
+
+        return UserProfileResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .workerName(user.getWorker().getName())
+                .workerEmail(user.getWorker().getEmail())
+                .role(role)
+                .build();
+    }
+
+
+    @Override
+    public List<WorkerDetailResponse> getAllWorkers() {
+        return workerRepository.findAll()
+                .stream()
+                .map(WorkerDetailResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public WorkerDetailResponse updateWorker(Long workerId, UpdateWorkerRequest request) {
+        Worker worker = workerRepository.findById(workerId)
+                .orElseThrow(() -> new RuntimeException("Trabajador no encontrado con ID: " + workerId));
+
+        Role newRole = roleRepository.findByName(request.getRoleName())
+                .orElseThrow(() -> new RuntimeException("Rol no encontrado: " + request.getRoleName()));
+
+        worker.setName(request.getName());
+        worker.setEmail(request.getEmail());
+        worker.setStatus(request.getStatus());
+        worker.setTelefono(request.getTelefono());
+        worker.setShift(request.getShift());
+        worker.setRole(newRole);
+
+        User user = worker.getUser();
+        user.setEstado(request.getStatus());
+
+        Worker updatedWorker = workerRepository.save(worker);
+        userRepository.save(user);
+
+        return WorkerDetailResponse.fromEntity(updatedWorker);
+    }
+
+
+    @Override
+    @Transactional
+    public void deleteWorker(Long workerId) {
+        Worker worker = workerRepository.findById(workerId)
+                .orElseThrow(() -> new RuntimeException("Trabajador no encontrado con ID: " + workerId));
+
+
+        worker.setStatus("INACTIVO");
+
+        User user = worker.getUser();
+        user.setEstado("INACTIVO");
+
+        workerRepository.save(worker);
+        userRepository.save(user);
+    }
 
 }

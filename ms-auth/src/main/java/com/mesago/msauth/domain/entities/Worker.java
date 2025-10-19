@@ -44,4 +44,7 @@ public class Worker {
     @JoinColumn(name = "ID_ROL", nullable = false)
     private Role role;
 
+    @OneToOne(mappedBy = "worker", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private User user;
+
 }
