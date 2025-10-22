@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 mysql -u root -p"$MYSQL_ROOT_PASSWORD" <<-EOSQL
     CREATE DATABASE IF NOT EXISTS mesago_auth_db;
     CREATE DATABASE IF NOT EXISTS mesago_inventario;
