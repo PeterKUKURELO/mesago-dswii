@@ -1,9 +1,12 @@
-FROM eclipse-temurin:17-jdk-alpine
-
+# Etapa 1: Compilación del proyecto con Maven
+FROM maven:3.9.9-eclipse-temurin-17 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-COPY target/*.jar app.jar
-
+# Etapa 2: Imagen final de ejecución
+FROM eclipse-temurin:17-jdk-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8084
-
 ENTRYPOINT ["java", "-jar", "app.jar"]
