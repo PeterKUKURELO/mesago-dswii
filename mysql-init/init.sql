@@ -1,0 +1,7 @@
+CREATE DATABASE IF NOT EXISTS mesago_auth_db;
+CREATE DATABASE IF NOT EXISTS mesago_clientes;
+CREATE DATABASE IF NOT EXISTS mesago_inventario;
+CREATE DATABASE IF NOT EXISTS mesago_pedidos;
+CREATE DATABASE IF NOT EXISTS mesago_proveedores;
+CREATE DATABASE IF NOT EXISTS mesago_reservas;
+CREATE DATABASE IF NOT EXISTS mesago_facturacion;
