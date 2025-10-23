@@ -1,5 +1,6 @@
 package com.mesago.mspedidos.controller;
 
+import com.mesago.mspedidos.dto.DetallePedidoDTO;
 import com.mesago.mspedidos.entity.DetallePedido;
 import com.mesago.mspedidos.service.DetallePedidoService;
 import org.springframework.http.ResponseEntity;
@@ -11,32 +12,35 @@ import java.util.List;
 @RequestMapping("/api/detalles")
 public class DetallePedidoController {
 
-    private final DetallePedidoService detallePedidoService;
+    private final DetallePedidoService detalleService;
 
-    public DetallePedidoController(DetallePedidoService detallePedidoService) {
-        this.detallePedidoService = detallePedidoService;
-    }
-
-    @GetMapping
-    public ResponseEntity<List<DetallePedido>> listar() {
-        return ResponseEntity.ok(detallePedidoService.listar());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<DetallePedido> obtenerPorId(@PathVariable Long id) {
-        return detallePedidoService.obtenerPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public DetallePedidoController(DetallePedidoService detalleService) {
+        this.detalleService = detalleService;
     }
 
     @PostMapping
-    public ResponseEntity<DetallePedido> guardar(@RequestBody DetallePedido detalle) {
-        return ResponseEntity.ok(detallePedidoService.guardar(detalle));
+    public ResponseEntity<DetallePedidoDTO> crear(@RequestBody DetallePedidoDTO dto) {
+        return ResponseEntity.ok(detalleService.crear(dto));
+    }
+
+    @GetMapping("/pedido/{idPedido}")
+    public ResponseEntity<List<DetallePedidoDTO>> listarPorPedido(@PathVariable Long idPedido) {
+        return ResponseEntity.ok(detalleService.listarPorPedido(idPedido));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DetallePedidoDTO> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(detalleService.obtenerPorId(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<DetallePedidoDTO> actualizar(@PathVariable Long id, @RequestBody DetallePedidoDTO dto) {
+        return ResponseEntity.ok(detalleService.actualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        detallePedidoService.eliminar(id);
+        detalleService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 }

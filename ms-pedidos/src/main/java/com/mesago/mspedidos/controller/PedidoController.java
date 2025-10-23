@@ -1,5 +1,7 @@
 package com.mesago.mspedidos.controller;
 
+import com.mesago.mspedidos.dto.PedidoRequestDTO;
+import com.mesago.mspedidos.dto.PedidoResponseDTO;
 import com.mesago.mspedidos.entity.Pedido;
 import com.mesago.mspedidos.service.PedidoService;
 import org.springframework.http.ResponseEntity;
@@ -17,21 +19,28 @@ public class PedidoController {
         this.pedidoService = pedidoService;
     }
 
+    @PostMapping
+    public ResponseEntity<PedidoResponseDTO> crear(@RequestBody PedidoRequestDTO dto) {
+        Pedido pedido = pedidoService.crear(dto);
+        return ResponseEntity.ok(pedidoService.toResponseDTO(pedido));
+    }
+
     @GetMapping
-    public ResponseEntity<List<Pedido>> listar() {
+    public ResponseEntity<List<PedidoResponseDTO>> listar() {
         return ResponseEntity.ok(pedidoService.listar());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Pedido> obtenerPorId(@PathVariable Long id) {
+    public ResponseEntity<PedidoResponseDTO> obtenerPorId(@PathVariable Long id) {
         return pedidoService.obtenerPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<Pedido> guardar(@RequestBody Pedido pedido) {
-        return ResponseEntity.ok(pedidoService.guardar(pedido));
+    @PutMapping("/{id}")
+    public ResponseEntity<PedidoResponseDTO> actualizar(@PathVariable Long id, @RequestBody PedidoRequestDTO dto) {
+        Pedido actualizado = pedidoService.actualizar(id, dto);
+        return ResponseEntity.ok(pedidoService.toResponseDTO(actualizado));
     }
 
     @DeleteMapping("/{id}")
