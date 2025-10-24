@@ -14,6 +14,17 @@
         <module name="ms-inventario" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="gateway-service" target="1.8" />
+      <module name="mesa-go-parent" target="1.5" />
+      <module name="ms-catalogo-menu" target="1.8" />
+      <module name="ms-clientes (1)" target="1.8" />
+      <module name="ms-clientes (2)" target="1.8" />
+      <module name="ms-facturacion" target="1.8" />
+      <module name="ms-pedidos" target="1.8" />
+      <module name="ms-proveedores" target="1.8" />
+      <module name="ms-reservas" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
