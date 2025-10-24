@@ -33,8 +33,10 @@ public class GatewayMvcConfig {
                         HandlerFunctions.http("http://ms-inventario:8084"))
 
                 // ms-pedidos (Puerto: 8085)
-//                .route(request -> request.path().startsWith("/api/pedidos"),
-//                        HandlerFunctions.http("http://ms-pedidos:8085"))
+                .route(request -> request.path().startsWith("/api/pedidos")
+                                || request.path().startsWith("/api/detalles")
+                                || request.path().startsWith("/api/mesas"),
+                        HandlerFunctions.http("http://ms-pedidos:8085"))
 
                 // ms-proveedores (Puerto: 8086)
                 .route(request -> request.path().startsWith("/api/proveedores"),
@@ -44,6 +46,10 @@ public class GatewayMvcConfig {
                 .route(request -> request.path().startsWith("/api/reservas"),
                         HandlerFunctions.http("http://ms-reservas:8087"))
 
+                //ms-catalogo-menu (Puerto: 8088)
+                .route(request -> request.path().startsWith("/api/categorias")
+                                || request.path().startsWith("/api/menu"),
+                        HandlerFunctions.http("http://ms-catalogo-menu:8088"))
                 .build();
     }
 }

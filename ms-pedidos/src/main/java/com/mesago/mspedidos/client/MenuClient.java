@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.math.BigDecimal;
 import java.util.Map;
 
-@FeignClient(name = "ms-catalogo-menu", url = "http://localhost:8084/api/menu")
+@FeignClient(name = "ms-catalogo-menu", url = "http://ms-catalogo-menu:8088/api/menu")
 public interface MenuClient {
 
     @GetMapping("/{id}")
