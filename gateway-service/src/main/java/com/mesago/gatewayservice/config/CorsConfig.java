@@ -20,28 +20,22 @@ public class CorsConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.addAllowedOriginPattern("http://localhost:*");
-        config.addAllowedOriginPattern("http://127.0.0.1:*");
+
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://52.15.79.108",
+                "https://52.15.79.108"
+        ));
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
 
+        config.addExposedHeader("Authorization");
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
-    }
-
-    @Bean
-    public RouterFunction<ServerResponse> corsRouter() {
-        return RouterFunctions.route(
-                RequestPredicates.OPTIONS("/**"),
-                req -> ServerResponse.ok()
-                        .header("Access-Control-Allow-Origin", req.headers().firstHeader("Origin"))
-                        .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-                        .header("Access-Control-Allow-Headers", "Authorization,Content-Type")
-                        .header("Access-Control-Allow-Credentials", "true")
-                        .build()
-        );
     }
 }
 
