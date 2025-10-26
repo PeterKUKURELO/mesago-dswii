@@ -1,4 +1,4 @@
-package com.mesago.msproveedores.config;
+package com.mesago.mscatalogomenu.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

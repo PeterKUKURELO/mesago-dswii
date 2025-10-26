@@ -3,6 +3,7 @@ package com.mesago.mspedidos.controller;
 import com.mesago.mspedidos.entity.Mesa;
 import com.mesago.mspedidos.service.MesaService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,11 +19,13 @@ public class MesaController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('MESERO', 'ADMIN')")
     public ResponseEntity<List<Mesa>> listar() {
         return ResponseEntity.ok(mesaService.listar());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MESERO', 'ADMIN')")
     public ResponseEntity<Mesa> obtenerPorId(@PathVariable Long id) {
         return mesaService.obtenerPorId(id)
                 .map(ResponseEntity::ok)
@@ -30,11 +33,13 @@ public class MesaController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('MESERO', 'ADMIN')")
     public ResponseEntity<Mesa> guardar(@RequestBody Mesa mesa) {
         return ResponseEntity.ok(mesaService.guardar(mesa));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MESERO', 'ADMIN')")
     public ResponseEntity<Mesa> actualizar(@PathVariable Long id, @RequestBody Mesa mesa) {
         return mesaService.obtenerPorId(id)
                 .map(existing -> {
@@ -45,6 +50,7 @@ public class MesaController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MESERO', 'ADMIN')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         mesaService.eliminar(id);
         return ResponseEntity.noContent().build();

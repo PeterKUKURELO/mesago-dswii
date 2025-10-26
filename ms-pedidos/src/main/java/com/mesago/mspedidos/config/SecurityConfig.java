@@ -1,5 +1,4 @@
-package com.mesago.msfacturacion.config;
-
+package com.mesago.mspedidos.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

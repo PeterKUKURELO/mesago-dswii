@@ -1,5 +1,4 @@
-package com.mesago.msfacturacion.config;
-
+package com.mesago.mscatalogomenu.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
