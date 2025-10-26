@@ -25,8 +25,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtils jwtUtils;
 
     private final List<String> publicApiEndpoints = List.of(
-            "/api/auth/login",
-            "/api/auth/register"
+            "/api/auth/login"
     );
 
     public AuthenticationFilter(JwtUtils jwtUtils) {
