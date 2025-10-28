@@ -17,6 +17,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Predicate;
+import org.springframework.util.AntPathMatcher;
+
 
 @Slf4j
 @Component
@@ -24,8 +26,17 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
 
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
     private final List<String> publicApiEndpoints = List.of(
-            "/api/auth/login"
+            "/api/auth/login",
+            "/v3/api-docs/**",
+            "/v3/api-docs/swagger-config",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/swagger-resources/**",
+            "/webjars/**",
+            "/swagger-config/urls.json"
     );
 
     public AuthenticationFilter(JwtUtils jwtUtils) {
@@ -38,7 +49,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         log.info("Gateway Filter: Petición entrante a {}", request.getRequestURI());
 
         Predicate<HttpServletRequest> isPublic =
-                req -> publicApiEndpoints.stream().anyMatch(uri -> req.getRequestURI().startsWith(uri));
+                req -> publicApiEndpoints.stream().anyMatch(uri -> pathMatcher.match(uri, req.getRequestURI()));
 
         if (isPublic.test(request)) {
             log.info("Gateway Filter: Ruta pública, permitiendo acceso sin validación de token.");
