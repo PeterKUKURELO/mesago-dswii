@@ -45,8 +45,16 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-        throws ServletException, IOException {
+            throws ServletException, IOException {
+
         log.info("Gateway Filter: Petición entrante a {}", request.getRequestURI());
+
+        // Permitir OPTIONS siempre
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         Predicate<HttpServletRequest> isPublic =
                 req -> publicApiEndpoints.stream().anyMatch(uri -> pathMatcher.match(uri, req.getRequestURI()));
@@ -76,7 +84,6 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         log.info("Gateway Filter: Token JWT válido. Petición autorizada para continuar.");
         filterChain.doFilter(request, response);
-
     }
 
 }

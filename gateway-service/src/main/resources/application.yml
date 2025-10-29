@@ -1,50 +1,25 @@
 server:
   port: 8080
 
-spring:
-  application:
-    name: gateway-service
-  cloud:
-    gateway:
-
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowed-origins:
-              - "http://localhost:5173"
-              - "http://localhost:3000"
-              - "http://localhost:8080"
-            allowed-methods:
-              - "GET"
-              - "POST"
-              - "PUT"
-              - "DELETE"
-              - "OPTIONS"
-            allowed-headers:
-              - "*"
-            allow-credentials: true
-            max-age: 3600
-
 jwt:
   secret: mesagosecretkeyultralargaparaquejwtnosequeje
 
 springdoc:
   swagger-ui:
-    config-url: /swagger-config/urls.json
     urls:
-      - name: auth
+      - name: Auth
         url: /v3/api-docs/auth
-      - name: clientes
+      - name: Clientes
         url: /v3/api-docs/clientes
-      - name: facturacion
+      - name: Facturación
         url: /v3/api-docs/facturacion
-      - name: inventario
+      - name: Inventario
         url: /v3/api-docs/inventario
-      - name: pedidos
+      - name: Pedidos
         url: /v3/api-docs/pedidos
-      - name: proveedores
+      - name: Proveedores
         url: /v3/api-docs/proveedores
-      - name: reservas
+      - name: Reservas
         url: /v3/api-docs/reservas
-      - name: catalogo-menu
+      - name: Catálogo Menu
         url: /v3/api-docs/catalogo-menu
