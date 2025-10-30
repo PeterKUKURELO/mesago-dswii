@@ -25,27 +25,32 @@ public class UserController {
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserProfileResponse> getMyUserProfile(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<ApiResponse<UserProfileResponse>> getMyUserProfile(@AuthenticationPrincipal UserDetails userDetails) {
         UserProfileResponse profile = authService.getMyProfile(userDetails);
-        return ResponseEntity.ok(profile);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Perfil obtenido correctamente", profile));
     }
 
-
     @GetMapping("/workers")
-    public ResponseEntity<List<WorkerDetailResponse>> getAllWorkers() {
-        return ResponseEntity.ok(authService.getAllWorkers());
-
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<WorkerDetailResponse>>> getAllWorkers() {
+        List<WorkerDetailResponse> workers = authService.getAllWorkers();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Lista de trabajadores obtenida", workers));
     }
 
     @PutMapping("/workers/{id}")
-    public ResponseEntity<WorkerDetailResponse> updateWorker(@PathVariable Long id, @Valid @RequestBody UpdateWorkerRequest request) {
-        return ResponseEntity.ok(authService.updateWorker(id, request));
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<WorkerDetailResponse>> updateWorker(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateWorkerRequest request) {
+
+        WorkerDetailResponse updated = authService.updateWorker(id, request);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Trabajador actualizado correctamente", updated));
     }
 
     @DeleteMapping("/workers/{id}")
-    public ResponseEntity<Void> deleteWorker(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteWorker(@PathVariable Long id) {
         authService.deleteWorker(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Trabajador eliminado correctamente", null));
     }
-
 }

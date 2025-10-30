@@ -1,5 +1,6 @@
 package com.mesago.msauth.api.exception;
 
+import com.mesago.msauth.api.controller.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -22,81 +23,65 @@ public class RestExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(RestExceptionHandler.class);
 
     /**
-     * Error 401: Fallo de autenticación.
-     * Se activa cuando el login falla (contraseña incorrecta, usuario no existe, cuenta deshabilitada/bloqueada).
+     * 401 - Error de autenticación
      */
-    @ExceptionHandler(value = { AuthenticationException.class })
-    public ResponseEntity<Object> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
         log.warn("Fallo de autenticación: {}", ex.getMessage());
-        Map<String, Object> body = createErrorBody(HttpStatus.UNAUTHORIZED, "No Autorizado", ex.getMessage(), request);
-        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+        return buildResponse(HttpStatus.UNAUTHORIZED, "No autorizado: " + ex.getMessage());
     }
 
     /**
-     * Error 403: Acceso denegado (Prohibido).
-     * Se activa cuando un usuario autenticado intenta acceder a un recurso para el cual no tiene el rol necesario.
+     * 403 - Acceso denegado
      */
-    @ExceptionHandler(value = { AccessDeniedException.class })
-    public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
-        log.warn("Acceso denegado para el usuario '{}': {}", request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : "anónimo", ex.getMessage());
-        Map<String, Object> body = createErrorBody(HttpStatus.FORBIDDEN, "Prohibido", "No tienes los permisos necesarios para acceder a este recurso.", request);
-        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
+        log.warn("Acceso denegado a '{}': {}", request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : "anónimo", ex.getMessage());
+        return buildResponse(HttpStatus.FORBIDDEN, "No tienes permisos para acceder a este recurso.");
     }
 
     /**
-     * Error 409: Conflicto de recursos.
-     * Se activa con nuestra excepción personalizada cuando se intenta crear un recurso que ya existe (ej. username/email duplicado).
+     * 409 - Recurso duplicado
      */
-    @ExceptionHandler(value = { DuplicateResourceException.class })
-    public ResponseEntity<Object> handleDuplicateResourceException(DuplicateResourceException ex, WebRequest request) {
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateResourceException(DuplicateResourceException ex, WebRequest request) {
         log.warn("Conflicto de recurso: {}", ex.getMessage());
-        Map<String, Object> body = createErrorBody(HttpStatus.CONFLICT, "Conflicto", ex.getMessage(), request);
-        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     /**
-     * Error 400: Petición incorrecta por validación de DTOs.
-     * Se activa cuando los datos de un @RequestBody anotado con @Valid no cumplen las reglas (@NotBlank, @Email, etc.).
+     * 400 - Error de validación (DTOs con @Valid)
      */
-    @ExceptionHandler(value = { MethodArgumentNotValidException.class })
-    public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Void>> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
         String errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
         log.warn("Error de validación: {}", errors);
-        Map<String, Object> body = createErrorBody(HttpStatus.BAD_REQUEST, "Petición Inválida", "Error de validación: " + errors, request);
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        return buildResponse(HttpStatus.BAD_REQUEST, "Error de validación: " + errors);
     }
 
     /**
-     * Error 400: Petición incorrecta por JSON malformado.
-     * Se activa cuando el JSON de la petición no se puede convertir a un objeto Java (ej. rol "GERENTA").
+     * 400 - JSON malformado
      */
-    @ExceptionHandler(value = { HttpMessageNotReadableException.class })
-    public ResponseEntity<Object> handleJsonParseException(HttpMessageNotReadableException ex, WebRequest request) {
-        log.warn("Error de parseo de JSON: {}", ex.getMessage());
-        Map<String, Object> body = createErrorBody(HttpStatus.BAD_REQUEST, "Petición Inválida", "El cuerpo de la petición tiene un formato JSON incorrecto o valores no válidos.", request);
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleJsonParseException(HttpMessageNotReadableException ex, WebRequest request) {
+        log.warn("Error de parseo JSON: {}", ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, "El cuerpo de la petición tiene un formato JSON incorrecto o valores no válidos.");
     }
 
     /**
-     * Error 500: Error interno del servidor (último recurso).
-     * Atrapa cualquier otra excepción no controlada para evitar exponer detalles sensibles.
+     * 500 - Errores no controlados
      */
-    @ExceptionHandler(value = { Exception.class })
-    public ResponseEntity<Object> handleGenericException(Exception ex, WebRequest request) {
-        log.error("¡Ocurrió una excepción no controlada!", ex);
-        Map<String, Object> body = createErrorBody(HttpStatus.INTERNAL_SERVER_ERROR, "Error Interno del Servidor", "Ocurrió un error inesperado. Contacte al administrador.", request);
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex, WebRequest request) {
+        log.error("Excepción no controlada", ex);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado. Contacte al administrador.");
     }
 
-    private Map<String, Object> createErrorBody(HttpStatus status, String error, String message, WebRequest request) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", System.currentTimeMillis());
-        body.put("status", status.value());
-        body.put("error", error);
-        body.put("message", message);
-        body.put("path", request.getDescription(false).substring(4)); // Quita "uri="
-        return body;
+    // 🔹 Método auxiliar para generar respuestas uniformes
+    private ResponseEntity<ApiResponse<Void>> buildResponse(HttpStatus status, String message) {
+        ApiResponse<Void> response = new ApiResponse<>(false, message, null);
+        return ResponseEntity.status(status).body(response);
     }
 }

@@ -5,53 +5,59 @@ import com.mesago.msfacturacion.domain.entities.Facturacion;
 import com.mesago.msfacturacion.domain.repositories.FacturacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 public class FacturacionServiceImpl implements FacturacionService {
 
     @Autowired
-    private FacturacionRepository repo;
+    private FacturacionRepository repository;
 
-    @Override
+    // LISTAR TODAS LAS FACTURAS
     public List<Facturacion> listar() {
-        return repo.findAll();
+        return repository.findAll();
     }
 
-    @Override
+    // OBTENER FACTURA POR ID
     public Facturacion obtenerPorId(Long id) {
-        return repo.findById(id).orElse(null);
+        return repository.findById(id).orElse(null);
     }
 
-    @Override
+    // GUARDAR FACTURA
     public Facturacion guardar(Facturacion facturacion) {
-        return repo.save(facturacion);
+        return repository.save(facturacion);
     }
 
-    @Override
+    // ACTUALIZAR FACTURA
     public Facturacion actualizar(Long id, Facturacion facturacion) {
-        Optional<Facturacion> opt = repo.findById(id);
-        if (opt.isPresent()) {
-            Facturacion existente = opt.get();
-
-            // ✅ Seteamos los campos actualizables
-            existente.setFechaEmision(facturacion.getFechaEmision());
-            existente.setMetodoPago(facturacion.getMetodoPago());
-            existente.setMontoTotal(facturacion.getMontoTotal());
-            existente.setNumeroFactura(facturacion.getNumeroFactura());
-            existente.setTipo(facturacion.getTipo());
-            existente.setIdPedido(facturacion.getIdPedido());
-            existente.setIdReserva(facturacion.getIdReserva());
-
-            return repo.save(existente);
+        Facturacion existente = repository.findById(id).orElse(null);
+        if (existente == null) {
+            return null;
         }
-        return null;
+
+        // Actualizar campos de la factura
+        existente.setFechaEmision(facturacion.getFechaEmision());
+        existente.setMetodoPago(facturacion.getMetodoPago());
+        existente.setMontoTotal(facturacion.getMontoTotal());
+        existente.setNumeroFactura(facturacion.getNumeroFactura());
+        existente.setTipo(facturacion.getTipo());
+        existente.setIdPedido(facturacion.getIdPedido());
+        existente.setIdReserva(facturacion.getIdReserva());
+
+        return repository.save(existente);
     }
 
-    @Override
+    // ELIMINAR FACTURA
     public void eliminar(Long id) {
-        repo.deleteById(id);
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+        }
     }
 }

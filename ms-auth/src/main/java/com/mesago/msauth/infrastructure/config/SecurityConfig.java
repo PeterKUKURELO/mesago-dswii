@@ -22,6 +22,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
+import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
+
 import static org.springframework.security.config.Customizer.withDefaults;
 
 
@@ -55,23 +58,27 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, HandlerMappingIntrospector introspector) throws Exception {
+        MvcRequestMatcher.Builder mvc = new MvcRequestMatcher.Builder(introspector);
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Reglas de autorización (estaban bien, las mantenemos)
                         .requestMatchers(
-                                "/v3/api-docs",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/api/auth/login"
+                                mvc.pattern("/v3/api-docs"),
+                                mvc.pattern("/v3/api-docs/**"),
+                                mvc.pattern("/swagger-ui.html"),
+                                mvc.pattern("/swagger-ui/**"),
+                                mvc.pattern("/swagger-resources/**"),
+                                mvc.pattern("/webjars/**"),
+                                mvc.pattern("/api/auth/login")
                         ).permitAll()
-                        .requestMatchers("/api/auth/register").hasRole("ADMIN")
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(mvc.pattern("/api/auth/register")).hasRole("ADMIN")
+                        .requestMatchers(mvc.pattern("/api/admin/**")).hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider());

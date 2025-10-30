@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/pedidos")
@@ -22,36 +23,51 @@ public class PedidoController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('MESERO', 'ADMIN')")
-    public ResponseEntity<PedidoResponseDTO> crear(@RequestBody PedidoRequestDTO dto) {
+    public ResponseEntity<ApiResponse<PedidoResponseDTO>> crear(@RequestBody PedidoRequestDTO dto) {
         Pedido pedido = pedidoService.crear(dto);
-        return ResponseEntity.ok(pedidoService.toResponseDTO(pedido));
+        PedidoResponseDTO response = pedidoService.toResponseDTO(pedido);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Pedido creado correctamente", response));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('MESERO', 'ADMIN')")
-    public ResponseEntity<List<PedidoResponseDTO>> listar() {
-        return ResponseEntity.ok(pedidoService.listar());
+    public ResponseEntity<ApiResponse<List<PedidoResponseDTO>>> listar() {
+        List<PedidoResponseDTO> pedidos = pedidoService.listar();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Lista de pedidos obtenida correctamente", pedidos));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('MESERO', 'ADMIN')")
-    public ResponseEntity<PedidoResponseDTO> obtenerPorId(@PathVariable Long id) {
-        return pedidoService.obtenerPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<PedidoResponseDTO>> obtenerPorId(@PathVariable Long id) {
+        Optional<PedidoResponseDTO> pedidoOpt = pedidoService.obtenerPorId(id);
+
+        if (pedidoOpt.isPresent()) {
+            return ResponseEntity.ok(new ApiResponse<>(true, "Pedido encontrado correctamente", pedidoOpt.get()));
+        } else {
+            return ResponseEntity.status(404).body(new ApiResponse<>(false, "Pedido no encontrado", null));
+        }
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('MESERO', 'ADMIN')")
-    public ResponseEntity<PedidoResponseDTO> actualizar(@PathVariable Long id, @RequestBody PedidoRequestDTO dto) {
-        Pedido actualizado = pedidoService.actualizar(id, dto);
-        return ResponseEntity.ok(pedidoService.toResponseDTO(actualizado));
+    public ResponseEntity<ApiResponse<PedidoResponseDTO>> actualizar(@PathVariable Long id, @RequestBody PedidoRequestDTO dto) {
+        try {
+            Pedido actualizado = pedidoService.actualizar(id, dto);
+            PedidoResponseDTO response = pedidoService.toResponseDTO(actualizado);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Pedido actualizado correctamente", response));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(new ApiResponse<>(false, e.getMessage(), null));
+        }
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('MESERO', 'ADMIN')")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        pedidoService.eliminar(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
+        try {
+            pedidoService.eliminar(id);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Pedido eliminado correctamente", null));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(new ApiResponse<>(false, e.getMessage(), null));
+        }
     }
 }

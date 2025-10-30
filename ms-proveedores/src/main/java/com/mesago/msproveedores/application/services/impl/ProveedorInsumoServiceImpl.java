@@ -32,47 +32,72 @@ public class ProveedorInsumoServiceImpl implements ProveedorInsumoService {
 
     @Override
     public ProveedorInsumoResponse buscarPorId(Long id) {
-        ProveedorInsumo entity = proveedorInsumoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("ProveedorInsumo no encontrado con id: " + id));
-        return mapToResponse(entity);
+        Optional<ProveedorInsumo> opt = proveedorInsumoRepository.findById(id);
+        if (opt.isEmpty()) {
+            System.out.println("⚠️ ProveedorInsumo no encontrado con id: " + id);
+            return null;
+        }
+        return mapToResponse(opt.get());
     }
 
     @Override
     public ProveedorInsumoResponse registrar(ProveedorInsumoRequest request) {
-        Proveedor proveedor = proveedorRepository.findById(request.getIdProveedor())
-                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con id: " + request.getIdProveedor()));
+        var proveedor = proveedorRepository.findById(request.getIdProveedor()).orElse(null);
+        if (proveedor == null) {
+            System.out.println("⚠️ No se encontró el proveedor con id: " + request.getIdProveedor());
+            return null;
+        }
 
-        ProveedorInsumo nuevo = ProveedorInsumo.builder()
+        var nuevo = ProveedorInsumo.builder()
                 .proveedor(proveedor)
                 .idInsumo(request.getIdInsumo())
-                .precioUnitario(request.getPrecioUnitario())
                 .fechaEntrega(request.getFechaEntrega())
+                .precioUnitario(request.getPrecioUnitario())
                 .build();
 
-        ProveedorInsumo guardado = proveedorInsumoRepository.save(nuevo);
-        return mapToResponse(guardado);
+        proveedorInsumoRepository.save(nuevo);
+
+        return new ProveedorInsumoResponse(
+                nuevo.getIdProveedorInsumo(),
+                nuevo.getProveedor().getIdProveedor(),
+                nuevo.getIdInsumo(),
+                nuevo.getPrecioUnitario(),
+                nuevo.getFechaEntrega()
+        );
     }
 
     @Override
     public ProveedorInsumoResponse actualizar(Long id, ProveedorInsumoRequest request) {
-        ProveedorInsumo existente = proveedorInsumoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("ProveedorInsumo no encontrado con id: " + id));
+        Optional<ProveedorInsumo> optExistente = proveedorInsumoRepository.findById(id);
+        if (optExistente.isEmpty()) {
+            System.out.println("⚠️ ProveedorInsumo no encontrado con id: " + id);
+            return null;
+        }
 
-        Proveedor proveedor = proveedorRepository.findById(request.getIdProveedor())
-                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con id: " + request.getIdProveedor()));
+        var proveedor = proveedorRepository.findById(request.getIdProveedor()).orElse(null);
+        if (proveedor == null) {
+            System.out.println("⚠️ Proveedor no encontrado con id: " + request.getIdProveedor());
+            return null;
+        }
 
+        ProveedorInsumo existente = optExistente.get();
         existente.setProveedor(proveedor);
         existente.setIdInsumo(request.getIdInsumo());
         existente.setPrecioUnitario(request.getPrecioUnitario());
         existente.setFechaEntrega(request.getFechaEntrega());
 
-        ProveedorInsumo actualizado = proveedorInsumoRepository.save(existente);
-        return mapToResponse(actualizado);
+        proveedorInsumoRepository.save(existente);
+        return mapToResponse(existente);
     }
 
     @Override
     public void eliminar(Long id) {
+        if (!proveedorInsumoRepository.existsById(id)) {
+            System.out.println("⚠️ No se encontró ProveedorInsumo con id: " + id);
+            return;
+        }
         proveedorInsumoRepository.deleteById(id);
+        System.out.println("✅ ProveedorInsumo eliminado con id: " + id);
     }
 
     private ProveedorInsumoResponse mapToResponse(ProveedorInsumo entity) {

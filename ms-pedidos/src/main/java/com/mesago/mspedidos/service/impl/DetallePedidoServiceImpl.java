@@ -36,7 +36,6 @@ public class DetallePedidoServiceImpl implements DetallePedidoService {
         Pedido pedido = pedidoRepository.findById(dto.getIdPedido())
                 .orElseThrow(() -> new PedidoNoEncontradoException(dto.getIdPedido()));
 
-        // 🔍 Obtener precio desde ms-catalogo-menu
         Map<String, Object> menuResponse = menuClient.obtenerMenuPorId(dto.getIdMenu());
         if (menuResponse == null || !menuResponse.containsKey("precio")) {
             throw new RuntimeException("No se pudo obtener el precio del menú");

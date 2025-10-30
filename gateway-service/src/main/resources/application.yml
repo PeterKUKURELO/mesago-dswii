@@ -7,19 +7,19 @@ jwt:
 springdoc:
   swagger-ui:
     urls:
-      - name: Auth
+      - name: ms-auth
         url: /v3/api-docs/auth
-      - name: Clientes
+      - name: ms-clientes
         url: /v3/api-docs/clientes
-      - name: Facturación
+      - name: ms-facturacion
         url: /v3/api-docs/facturacion
-      - name: Inventario
+      - name: ms-inventario
         url: /v3/api-docs/inventario
-      - name: Pedidos
+      - name: ms-pedidos
         url: /v3/api-docs/pedidos
-      - name: Proveedores
+      - name: ms-proveedores
         url: /v3/api-docs/proveedores
-      - name: Reservas
+      - name: ms-reservas
         url: /v3/api-docs/reservas
-      - name: Catálogo Menu
+      - name: ms-catalogo-menu
         url: /v3/api-docs/catalogo-menu

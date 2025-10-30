@@ -30,14 +30,17 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     private final List<String> publicApiEndpoints = List.of(
             "/api/auth/login",
+            "/v3/api-docs",
             "/v3/api-docs/**",
-            "/v3/api-docs/swagger-config",
             "/swagger-ui.html",
             "/swagger-ui/**",
+            "/swagger-resources",
             "/swagger-resources/**",
             "/webjars/**",
+            "/swagger-config/**",
             "/swagger-config/urls.json"
     );
+
 
     public AuthenticationFilter(JwtUtils jwtUtils) {
         this.jwtUtils = jwtUtils;
@@ -47,7 +50,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        log.info("Gateway Filter: Petición entrante a {}", request.getRequestURI());
+        // 🔎 Agrega este log al inicio:
+        log.info("Gateway Filter: Evaluando URI => {}", request.getRequestURI());
 
         // Permitir OPTIONS siempre
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
@@ -58,7 +62,6 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         Predicate<HttpServletRequest> isPublic =
                 req -> publicApiEndpoints.stream().anyMatch(uri -> pathMatcher.match(uri, req.getRequestURI()));
-
         if (isPublic.test(request)) {
             log.info("Gateway Filter: Ruta pública, permitiendo acceso sin validación de token.");
             filterChain.doFilter(request, response);
@@ -67,7 +70,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
-            log.warn("Gateway Filter: Petición rechazada. Encabezado de autorización ausente o incorrecto.");
+            log.warn("Gateway Filter: Petición rechazada. Encabezado de autorización ausente o incorrecto. URI: {}", request.getRequestURI());
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Se requiere un token de autorización.");
             return;
         }
@@ -77,7 +80,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         try {
             jwtUtils.validateToken(token);
         } catch (JwtException e) {
-            log.error("Gateway Filter: Petición rechazada. Token JWT inválido: {}", e.getMessage());
+            log.error("Gateway Filter: Token JWT inválido en {} - Error: {}", request.getRequestURI(), e.getMessage());
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Token JWT inválido o expirado.");
             return;
         }
@@ -85,5 +88,6 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         log.info("Gateway Filter: Token JWT válido. Petición autorizada para continuar.");
         filterChain.doFilter(request, response);
     }
+
 
 }

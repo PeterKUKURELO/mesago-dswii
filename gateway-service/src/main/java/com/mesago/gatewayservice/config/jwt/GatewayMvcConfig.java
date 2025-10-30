@@ -17,6 +17,8 @@ import java.util.Map;
 @Configuration
 public class GatewayMvcConfig {
 
+
+
     private static final String MS_AUTH = "http://ms-auth:8081";
     private static final String MS_CLIENTES = "http://ms-clientes:8082";
     private static final String MS_FACTURACION = "http://ms-facturacion:8083";
@@ -53,7 +55,9 @@ public class GatewayMvcConfig {
                 .route(req -> matches(req.path(), "/api/facturacion"), HandlerFunctions.http(MS_FACTURACION))
                 .route(req -> matches(req.path(), "/api/insumos"), HandlerFunctions.http(MS_INVENTARIO))
                 .route(req -> matches(req.path(), "/api/pedidos", "/api/detalles", "/api/mesas"), HandlerFunctions.http(MS_PEDIDOS))
-                .route(req -> matches(req.path(), "/api/proveedores"), HandlerFunctions.http(MS_PROVEEDORES))
+                .route(req -> matches(req.path(),
+                        "/api/proveedores",
+                        "/api/proveedor-insumo"), HandlerFunctions.http(MS_PROVEEDORES))
                 .route(req -> matches(req.path(), "/api/reservas"), HandlerFunctions.http(MS_RESERVAS))
                 .route(req -> matches(req.path(), "/api/categorias", "/api/menu"), HandlerFunctions.http(MS_CATALOGO_MENU))
                 .build();
