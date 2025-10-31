@@ -1,6 +1,6 @@
-package com.mesago.msinventario.application.services;
+package com.mesago.application.services;
 
-import com.mesago.msinventario.domain.entities.Insumo;
+import com.mesago.domain.entities.Insumo;
 
 import java.util.List;
 

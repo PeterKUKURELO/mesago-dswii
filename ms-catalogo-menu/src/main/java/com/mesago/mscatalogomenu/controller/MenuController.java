@@ -4,9 +4,12 @@ import com.mesago.mscatalogomenu.dto.MenuResponseDTO;
 import com.mesago.mscatalogomenu.entity.Menu;
 import com.mesago.mscatalogomenu.service.MenuService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/menu")
@@ -19,23 +22,52 @@ public class MenuController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Menu>> listar() {
-        return ResponseEntity.ok(menuService.listar());
+    @PreAuthorize("hasAnyRole('CHEF', 'MESERO', 'ADMIN')")
+    public ResponseEntity<ApiResponse<List<Menu>>> listar() {
+        List<Menu> menus = menuService.listar();
+
+        if (menus.isEmpty()) {
+            return ResponseEntity.status(204)
+                    .body(new ApiResponse<>(true, "No hay menús registrados", null));
+        }
+
+        return ResponseEntity.ok(new ApiResponse<>(true, "Listado de menús obtenido correctamente", menus));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Menu> obtenerPorId(@PathVariable Long id) {
-        return menuService.obtenerPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @PreAuthorize("hasAnyRole('CHEF', 'ADMIN')")
+    public ResponseEntity<ApiResponse<Menu>> obtenerPorId(@PathVariable Long id) {
+        Optional<Menu> menuOpt = menuService.obtenerPorId(id);
+
+        if (menuOpt.isPresent()) {
+            return ResponseEntity.ok(new ApiResponse<>(true, "Menú encontrado correctamente", menuOpt.get()));
+        } else {
+            return ResponseEntity.status(404)
+                    .body(new ApiResponse<>(false, "No se encontró un menú con ID: " + id, null));
+        }
     }
 
-    // ✅ ESTE ES EL POST CORRECTO
     @PostMapping
-    public ResponseEntity<MenuResponseDTO> guardar(@RequestBody Menu menu) {
+    @PreAuthorize("hasAnyRole('CHEF', 'ADMIN')")
+    public ResponseEntity<ApiResponse<MenuResponseDTO>> guardar(@RequestBody Menu menu) {
+        // Validaciones básicas
+        if (menu.getNombre() == null || menu.getNombre().trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(false, "El nombre del menú es obligatorio", null));
+        }
+        if (menu.getPrecio() == null || menu.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>(false, "El precio debe ser mayor que 0", null)
+            );
+        }
+        if (menu.getStock() == null || menu.getStock() < 0) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(false, "El stock no puede ser negativo", null));
+        }
+
+        menu.setEstado("Activo");
         Menu nuevo = menuService.guardar(menu);
 
-        // Convertimos la entidad guardada en un DTO de respuesta
         MenuResponseDTO response = new MenuResponseDTO(
                 nuevo.getIdMenu(),
                 nuevo.getNombre(),
@@ -46,22 +78,50 @@ public class MenuController {
                 nuevo.getCategoriaMenu() != null ? nuevo.getCategoriaMenu().getIdCategoriaMenu() : null
         );
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Menú creado correctamente", response));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Menu> actualizar(@PathVariable Long id, @RequestBody Menu menu) {
-        return menuService.obtenerPorId(id)
-                .map(existing -> {
-                    menu.setIdMenu(id);
-                    return ResponseEntity.ok(menuService.guardar(menu));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    @PreAuthorize("hasAnyRole('CHEF', 'ADMIN')")
+    public ResponseEntity<ApiResponse<Menu>> actualizar(@PathVariable Long id, @RequestBody Menu menu) {
+        Optional<Menu> existente = menuService.obtenerPorId(id);
+
+        if (existente.isEmpty()) {
+            return ResponseEntity.status(404)
+                    .body(new ApiResponse<>(false, "No se encontró un menú con ID: " + id, null));
+        }
+
+        // Validaciones básicas
+        if (menu.getNombre() == null || menu.getNombre().trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(false, "El nombre del menú es obligatorio", null));
+        }
+        if (menu.getPrecio() == null || menu.getPrecio().compareTo(BigDecimal.ZERO) <= 0) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>(false, "El precio debe ser mayor que 0", null)
+            );
+        }
+        if (menu.getStock() == null || menu.getStock() < 0) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(false, "El stock no puede ser negativo", null));
+        }
+
+        menu.setIdMenu(id);
+        Menu actualizado = menuService.guardar(menu);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Menú actualizado correctamente", actualizado));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('CHEF', 'ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
+        Optional<Menu> existente = menuService.obtenerPorId(id);
+
+        if (existente.isEmpty()) {
+            return ResponseEntity.status(404)
+                    .body(new ApiResponse<>(false, "No se encontró un menú con ID: " + id, null));
+        }
+
         menuService.eliminar(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new ApiResponse<>(true, "Menú eliminado correctamente", null));
     }
 }

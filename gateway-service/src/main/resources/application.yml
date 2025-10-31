@@ -1,39 +1,25 @@
 server:
   port: 8080
 
-spring:
-  application:
-    name: gateway-service
-
-  cloud:
-     gateway:
-       routes:
-
-         -  id: ms-auth-route
-            uri: lb://ms-auth
-            predicates:
-              - Path=/api/auth/**
-
-         -  id: ms-users-route
-            uri: lb://ms-auth
-            predicates:
-            - Path=/api/users/**, /api/admin/**
-
-         -  id: ms-pedidos-route
-            uri: lb://ms-pedidos
-            predicates:
-            - Path=/api/pedidos/**
-
-         -  id: ms-inventario-route
-            uri: lb://ms-inventario
-            predicates:
-            - Path=/api/inventario/**
-
-         -  id: ms-clientes-route
-            uri: lb://ms-clientes
-            predicates:
-            - Path=/api/clientes/**
-
-
 jwt:
   secret: mesagosecretkeyultralargaparaquejwtnosequeje
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: ms-auth
+        url: /v3/api-docs/auth
+      - name: ms-clientes
+        url: /v3/api-docs/clientes
+      - name: ms-facturacion
+        url: /v3/api-docs/facturacion
+      - name: ms-inventario
+        url: /v3/api-docs/inventario
+      - name: ms-pedidos
+        url: /v3/api-docs/pedidos
+      - name: ms-proveedores
+        url: /v3/api-docs/proveedores
+      - name: ms-reservas
+        url: /v3/api-docs/reservas
+      - name: ms-catalogo-menu
+        url: /v3/api-docs/catalogo-menu

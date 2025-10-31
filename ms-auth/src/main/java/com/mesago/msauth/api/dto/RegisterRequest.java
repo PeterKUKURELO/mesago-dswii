@@ -5,11 +5,13 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Builder
 public class RegisterRequest {
 
     @NotBlank(message = "El DNI no puede estar vacío")
@@ -23,6 +25,8 @@ public class RegisterRequest {
     private String name;
 
     private String telefono;
+
+    private String status = "ACTIVO";
 
     @NotBlank(message = "El nombre de usuario no puede estar vacío")
     @Size(min = 4, message = "El nombre de usuario debe tener al menos 4 caracteres")

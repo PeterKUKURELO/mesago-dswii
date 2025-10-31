@@ -1,6 +1,6 @@
-package com.mesago.msinventario.domain.repositories;
+package com.mesago.domain.repositories;
 
-import com.mesago.msinventario.domain.entities.Insumo;
+import com.mesago.domain.entities.Insumo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface InsumoRepository extends JpaRepository<Insumo, Long> {

@@ -1,4 +1,4 @@
-package com.mesago.msinventario.domain.entities;
+package com.mesago.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.*;

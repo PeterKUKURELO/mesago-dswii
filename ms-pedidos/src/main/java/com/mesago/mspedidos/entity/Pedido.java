@@ -5,6 +5,7 @@ import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.AllArgsConstructor;
@@ -30,6 +31,7 @@ public class Pedido {
 
     @ManyToOne
     @JoinColumn(name = "id_mesa")
+    @JsonIgnoreProperties({"pedidos", "hibernateLazyInitializer", "handler"})
     private Mesa mesa;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -17,6 +17,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Predicate;
+import org.springframework.util.AntPathMatcher;
+
 
 @Slf4j
 @Component
@@ -24,10 +26,21 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
 
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
     private final List<String> publicApiEndpoints = List.of(
             "/api/auth/login",
-            "/api/auth/register"
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/webjars/**",
+            "/swagger-config/**",
+            "/swagger-config/urls.json"
     );
+
 
     public AuthenticationFilter(JwtUtils jwtUtils) {
         this.jwtUtils = jwtUtils;
@@ -35,12 +48,20 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-        throws ServletException, IOException {
-        log.info("Gateway Filter: Petición entrante a {}", request.getRequestURI());
+            throws ServletException, IOException {
+
+        // 🔎 Agrega este log al inicio:
+        log.info("Gateway Filter: Evaluando URI => {}", request.getRequestURI());
+
+        // Permitir OPTIONS siempre
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         Predicate<HttpServletRequest> isPublic =
-                req -> publicApiEndpoints.stream().anyMatch(uri -> req.getRequestURI().startsWith(uri));
-
+                req -> publicApiEndpoints.stream().anyMatch(uri -> pathMatcher.match(uri, req.getRequestURI()));
         if (isPublic.test(request)) {
             log.info("Gateway Filter: Ruta pública, permitiendo acceso sin validación de token.");
             filterChain.doFilter(request, response);
@@ -49,7 +70,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
-            log.warn("Gateway Filter: Petición rechazada. Encabezado de autorización ausente o incorrecto.");
+            log.warn("Gateway Filter: Petición rechazada. Encabezado de autorización ausente o incorrecto. URI: {}", request.getRequestURI());
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Se requiere un token de autorización.");
             return;
         }
@@ -59,14 +80,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         try {
             jwtUtils.validateToken(token);
         } catch (JwtException e) {
-            log.error("Gateway Filter: Petición rechazada. Token JWT inválido: {}", e.getMessage());
+            log.error("Gateway Filter: Token JWT inválido en {} - Error: {}", request.getRequestURI(), e.getMessage());
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "Token JWT inválido o expirado.");
             return;
         }
 
         log.info("Gateway Filter: Token JWT válido. Petición autorizada para continuar.");
         filterChain.doFilter(request, response);
-
     }
+
 
 }

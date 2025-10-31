@@ -1,10 +1,12 @@
 package com.mesago.mspedidos.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,5 +25,6 @@ public class Mesa {
     private String estado;
 
     @OneToMany(mappedBy = "mesa", cascade = CascadeType.ALL)
-    private List<Pedido> pedidos;
+    @JsonIgnoreProperties("mesa")
+    private List<Pedido> pedidos = new ArrayList<>();;
 }

@@ -1,4 +1,4 @@
-package com.mesago.msauth.domain.enums;
+    package com.mesago.msauth.domain.enums;
 
 public enum RoleName {
     ADMIN,

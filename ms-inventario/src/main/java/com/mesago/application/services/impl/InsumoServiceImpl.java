@@ -1,8 +1,8 @@
-package com.mesago.msinventario.application.services.impl;
+package com.mesago.application.services.impl;
 
-import com.mesago.msinventario.application.services.InsumoService;
-import com.mesago.msinventario.domain.entities.Insumo;
-import com.mesago.msinventario.domain.repositories.InsumoRepository;
+import com.mesago.application.services.InsumoService;
+import com.mesago.domain.entities.Insumo;
+import com.mesago.domain.repositories.InsumoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

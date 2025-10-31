@@ -1,210 +1,172 @@
 version: "3.9"
 
 services:
-  auth-db:
+  mysql-db:
     image: mysql:8.0
-    container_name: auth-db
+    container_name: mysql-db-server
+    restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=mesago_auth_db
+      MYSQL_ROOT_PASSWORD: root
     ports:
       - "3307:3306"
     volumes:
-      - auth_data:/var/lib/mysql
+      - mysql-data-volume:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
     networks:
       - mesago-net
 
-  # 🔐 AUTH SERVICE
-  ms-auth:
-    build: ./ms-auth
-    container_name: ms-auth
-    ports:
-      - "8081:8081"
-    environment:
-      - SERVER_PORT=8081
-      - SPRING_DATASOURCE_URL=jdbc:mysql://auth-db:3306/mesago_auth_db
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=root
-    depends_on:
-      - auth-db
-    networks:
-      - mesago-net
 
-  # 🚪 GATEWAY
   gateway-service:
     build: ./gateway-service
     container_name: gateway-service
+    restart: always
     ports:
       - "8080:8080"
     depends_on:
       - ms-auth
-    environment:
-      - SERVER_PORT=8080
+      - ms-clientes
+      - ms-facturacion
+      - ms-inventario
+      - ms-pedidos
+      - ms-proveedores
+      - ms-reservas
+      - ms-catalogo-menu
     networks:
       - mesago-net
 
+  ms-auth:
+    build: ./ms-auth
+    container_name: ms-auth
+    restart: always
+    environment:
+      - SERVER_PORT=8081
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/mesago_auth_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - mysql-db
+    networks:
+      - mesago-net
+
+
+
+  ms-clientes:
+    build: ./ms-clientes
+    container_name: ms-clientes
+    restart: always
+    environment:
+      - SERVER_PORT=8082
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/mesago_clientes
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - mysql-db
+    networks:
+      - mesago-net
+
+
+
+  ms-facturacion:
+    build: ./ms-facturacion
+    container_name: ms-facturacion
+    restart: always
+    environment:
+      - SERVER_PORT=8083
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/mesago_facturacion
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - mysql-db
+    networks:
+      - mesago-net
+
+
+
+  ms-inventario:
+    build: ./ms-inventario
+    container_name: ms-inventario
+    restart: always
+    environment:
+      - SERVER_PORT=8084
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/mesago_inventario
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - mysql-db
+    networks:
+      - mesago-net
+
+
+
+  ms-pedidos:
+    build: ./ms-pedidos
+    container_name: ms-pedidos
+    restart: always
+    environment:
+      - SERVER_PORT=8085
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/mesago_pedidos
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - mysql-db
+    networks:
+      - mesago-net
+
+
+
+  ms-proveedores:
+    build: ./ms-proveedores
+    container_name: ms-proveedores
+    restart: always
+    environment:
+      - SERVER_PORT=8086
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/mesago_proveedores
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - mysql-db
+    networks:
+      - mesago-net
+
+
+
+
+  ms-reservas:
+    build: ./ms-reservas
+    container_name: ms-reservas
+    restart: always
+    environment:
+      - SERVER_PORT=8087
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/mesago_reservas
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - mysql-db
+    networks:
+      - mesago-net
+
+
+  ms-catalogo-menu:
+    build: ./ms-catalogo-menu
+    container_name: ms-catalogo-menu
+    restart: always
+    environment:
+      - SERVER_PORT=8088
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/mesago_menu
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - mysql-db
+    networks:
+      - mesago-net
+
+
 networks:
   mesago-net:
+    driver: bridge
 
 volumes:
-  auth_data:
+  mysql-data-volume:
+    driver: local
 
 
-
-#version: '3.9'
-#
-#services:
-#  #Gateway Service:
-#  gateway-service:
-#    build: './gateway-service'
-#    container_name: gateway-service
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - ms-auth
-#      - ms-pedidos
-#      - ms-inventario
-#      - ms-clientes
-#      - ms-proveedores
-#      - ms-facturacion
-#      - ms-reservas
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#    networks:
-#      - app-net
-#
-#
-#  #Auth services
-#  ms-auth:
-#    build: './ms-auth'
-#    container_name: ms-auth
-#    ports:
-#      - "8081:8081"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/authdb?useSSL=false&allowPublicKeyRetrieval=true
-#      - SPRING_DATASOURCE_USERNAME=root
-#      - SPRING_DATASOURCE_PASSWORD=root
-#    depends_on:
-#      - db-mysql
-#    networks:
-#      - app.net
-#
-#
-#  ms-pedidos:
-#    build: ./ms-pedidos
-#    container_name: ms-pedidos
-#    ports:
-#      - "8082:8082"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/pedidosdb?useSSL=false&allowPublicKeyRetrieval=true
-#      - SPRING_DATASOURCE_USERNAME=root
-#      - SPRING_DATASOURCE_PASSWORD=root
-#    depends_on:
-#      - db-mysql
-#    networks:
-#      - app-net
-#
-#
-#  #Inventario Service
-#  ms-inventario:
-#    build: ./ms-inventario
-#    container_name: ms-inventario
-#    ports:
-#      - "8083:8083"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/inventariodb?useSSL=false&allowPublicKeyRetrieval=true
-#      - SPRING_DATASOURCE_USERNAME=root
-#      - SPRING_DATASOURCE_PASSWORD=root
-#    depends_on:
-#      - db-mysql
-#    networks:
-#      - app-net
-#
-#
-#  ms-proveedores:
-#    build: ./ms-proveedores
-#    container_name: ms-proveedores
-#    ports:
-#      - "8084:8084"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/proveedoresdb?useSSL=false&allowPublicKeyRetrieval=true
-#      - SPRING_DATASOURCE_USERNAME=root
-#      - SPRING_DATASOURCE_PASSWORD=12345
-#    depends_on:
-#      - db-mysql
-#    networks:
-#      - app-net
-#
-#
-#  ms-facturacion:
-#    build: ./ms-facturacion
-#    container_name: ms-facturacion
-#    ports:
-#      - "8085:8085"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/facturaciondb?useSSL=false&allowPublicKeyRetrieval=true
-#      - SPRING_DATASOURCE_USERNAME=root
-#      - SPRING_DATASOURCE_PASSWORD=12345
-#    depends_on:
-#      - db-mysql
-#    networks:
-#      - app-net
-#
-#
-#  ms-clientes:
-#    build: ./ms-clientes
-#    container_name: ms-clientes
-#    ports:
-#      - "8086:8086"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/clientesdb?useSSL=false&allowPublicKeyRetrieval=true
-#      - SPRING_DATASOURCE_USERNAME=root
-#      - SPRING_DATASOURCE_PASSWORD=12345
-#    depends_on:
-#      - db-mysql
-#    networks:
-#      - app-net
-#
-#
-#  ms-reservas:
-#    build: ./ms-reservas
-#    container_name: ms-reservas
-#    ports:
-#      - "8087:8087"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/reservasdb?useSSL=false&allowPublicKeyRetrieval=true
-#      - SPRING_DATASOURCE_USERNAME=root
-#      - SPRING_DATASOURCE_PASSWORD=12345
-#    depends_on:
-#      - db-mysql
-#    networks:
-#      - app-net
-#
-#
-#  #Base de datos MySQL
-#  db-mysql:
-#    image: mysql:8.0
-#    container_name: db-mysql
-#    restart: always
-#    environment:
-#      MYSQL_ROOT_PASSWORD: root
-#    ports:
-#      - "3307:3306"
-#    volumes:
-#      - mysql_data:/var/lib/mysql
-#    networks:
-#      - app-net
-#
-#networks:
-#   app-net:
-#     driver: bridge
-#
-#volumes:
-#  mysql_data:

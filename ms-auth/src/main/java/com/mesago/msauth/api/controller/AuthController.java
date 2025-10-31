@@ -23,18 +23,18 @@ public class AuthController {
         this.authService = authService;
     }
 
-
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
         AuthResponse authResponse = authService.login(loginRequest);
-        return ResponseEntity.ok(authResponse);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Inicio de sesión exitoso", authResponse));
     }
 
     @PostMapping("/register")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody RegisterRequest registerRequest) {
         authService.register(registerRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Usuario registrado exitosamente!");
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(true, "Usuario registrado exitosamente", null));
     }
-
 }
