@@ -17,7 +17,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/proveedor-insumo")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class ProveedorInsumoController {
 
     private final ProveedorInsumoService proveedorInsumoService;
