@@ -14,6 +14,8 @@ public interface AuthService {
 
     List<WorkerDetailResponse> getAllWorkers();
 
+    List<WorkerDetailPublic> findByRoleMeseroAndChef();
+
     WorkerDetailResponse updateWorker(Long workerId, UpdateWorkerRequest request);
 
     void deleteWorker(Long workerId);

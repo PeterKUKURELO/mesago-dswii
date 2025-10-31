@@ -126,6 +126,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public List<WorkerDetailPublic> findByRoleMeseroAndChef() {
+        return workerRepository.findByRoleMeseroAndChef()
+                .stream()
+                .map(WorkerDetailPublic::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public WorkerDetailResponse updateWorker(Long workerId, UpdateWorkerRequest request) {
         Worker worker = workerRepository.findById(workerId)
@@ -149,6 +157,8 @@ public class AuthServiceImpl implements AuthService {
 
         return WorkerDetailResponse.fromEntity(updatedWorker);
     }
+
+
 
 
     @Override
